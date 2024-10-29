@@ -71,9 +71,32 @@ const generateTree = async (dir, options) => {
         }
 
         let files = fs.readdirSync(dir).filter((x) => x.charAt(0) !== '_');
+        // JHK: Start of sort to add semantic versioning sorting to sidebar
+        // sort the files, sorting using semantic versioning rules (X.Y.Z)
+        // if the names start with numbers before a space
+        files.sort(function (a, b) {
+            // get numbers and dots from the start of the string
+            let aNum = a.match(/(\d+(\.\d+)+)/);
+            let bNum = b.match(/(\d+(\.\d+)+)/);
+            // now sort by each segment of the version number
+            if (aNum && bNum) {
+                let aParts = aNum[0].split('.');
+                let bParts = bNum[0].split('.');
+                for (let i = 0; i < aParts.length && i < bParts.length; i++) {
+                    if (aParts[i] !== bParts[i]) {
+                        return aParts[i] - bParts[i];
+                    }
+                }
+                return ('' + a).localeCompare(b);
+            } else {
+                return ('' + a).localeCompare(b);
+            }
+        });
+        // JHK: End of sort to add semantic versioning sorting to sidebar
         for (const file of files) {
             //if folder
             if (fs.statSync(path.join(dir, file)).isDirectory()) {
+                // console.log(chalk.blue(`Processing ${path.join(dir, file)}`));
                 item.descendants.push(file);
                 //create corresponding dist folder
                 if (
